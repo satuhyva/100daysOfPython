@@ -1,0 +1,1 @@
+my_constant = 555
