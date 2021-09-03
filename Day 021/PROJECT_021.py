@@ -1,64 +1,47 @@
 from turtle import Screen
-from paddle import Paddle
-from ball import Ball
-from score_board import ScoreBoard
+from snake import Snake
 import time
+from food import Food
+from score_board import ScoreBoard
+
 
 screen = Screen()
-screen.setup(width=800, height=600)
+screen.setup(width=600, height=600)
 screen.bgcolor("black")
-screen.title("PONG")
-screen.listen()
+screen.title("KÄÄRMEPELI")
 screen.tracer(0)
 
-right_paddle = Paddle("right")
-left_paddle = Paddle("left")
-ball = Ball()
+
+snake = Snake()
+screen.onkeypress(snake.up, "Up")
+screen.onkeypress(snake.down, "Down")
+screen.onkeypress(snake.left, "Left")
+screen.onkeypress(snake.right, "Right")
+screen.listen()
+
+food = Food()
 score_board = ScoreBoard()
 
-screen.onkeypress(right_paddle.move_up, "Up")
-screen.onkeypress(right_paddle.move_down, "Down")
-screen.onkeypress(left_paddle.move_up, "w")
-screen.onkeypress(left_paddle.move_down, "s")
-
 game_is_on = True
-sleep_time = 0.05
-
 while game_is_on:
-    time.sleep(sleep_time)
-    screen.update()
-    if score_board.score_left + score_board.score_right == 10:
+    snake.move()
+    if snake.snake_bits[0].distance(food) < 15:
+        snake.grow()
+        score_board.increase()
+        food.refresh()
+    for bit in snake.snake_bits[1:]:
+        if snake.snake_bits[0].distance(bit) < 10:
+            game_is_on = False
+            score_board.show_game_over()
+    if not -300 < snake.snake_bits[0].xcor() < 300:
         game_is_on = False
         score_board.show_game_over()
-    if ball.xcor() >= 360:
-        paddle_top_y = right_paddle.get_y() + 100 * 0.5
-        paddle_bottom_y = right_paddle.get_y() - 100 * 0.5
-        if paddle_bottom_y <= ball.ycor() <= paddle_top_y:
-            ball.turn()
-            score_board.increase("right")
-            sleep_time *= 0.85
-        elif ball.xcor() >= 420:
-            ball.reset("left")
-            sleep_time = 0.05
-            screen.update()
-            time.sleep(2)
-    if ball.xcor() <= -360:
-        paddle_top_y = left_paddle.get_y() + 100 * 0.5
-        paddle_bottom_y = left_paddle.get_y() - 100 * 0.5
-        if paddle_bottom_y <= ball.ycor() <= paddle_top_y:
-            ball.turn()
-            score_board.increase("left")
-            sleep_time *= 0.85
-        elif ball.xcor() <= -420:
-            ball.reset("right")
-            sleep_time = 0.05
-            screen.update()
-            time.sleep(2)
-    ball.move()
-
-
-
+        continue
+    if not -300 < snake.snake_bits[0].ycor() < 300:
+        game_is_on = False
+        score_board.show_game_over()
+        continue
+    screen.update()
+    time.sleep(0.4)
 
 screen.exitonclick()
-
-
